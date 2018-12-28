@@ -24,6 +24,7 @@ public class CustomerBroadcast {
 				.getOrCreate();
 		JavaSparkContext sc = JavaSparkContext.fromSparkContext(sparkSession.sparkContext());
 		Integer num = 2;
+		//广播变量是只读的
 		Broadcast<Integer> broadcast = sc.broadcast(num);
 		JavaRDD<Integer> rdd = sc.parallelize(Arrays.asList(1, 2, 3, 4, 5), 5);
 		rdd.map((Function<Integer, Integer>) v1 -> v1 + broadcast.value())
