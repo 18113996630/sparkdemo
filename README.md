@@ -1,0 +1,3 @@
+# sparkdemo
+spark的一些基础操作，后续应该会不断更新
+下载下来只需要修改org.hrong.sparkdemo.constants.ModuleConstants下面BASE_PATH属性即可运行
