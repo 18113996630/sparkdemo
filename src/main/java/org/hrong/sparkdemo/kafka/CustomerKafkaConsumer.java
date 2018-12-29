@@ -4,10 +4,8 @@ import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.streaming.Seconds;
 import org.apache.spark.streaming.api.java.JavaDStream;
@@ -17,22 +15,18 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
-import org.apache.spark.streaming.kafka010.Subscribe;
 import org.hrong.sparkdemo.kafka.vo.KafkaMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * @ClassName CustomerKafkaConsumer
@@ -45,22 +39,33 @@ public class CustomerKafkaConsumer implements Runnable {
 	private static Logger logger = LoggerFactory.getLogger(CustomerKafkaConsumer.class);
 	private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	private static FastDateFormat fastDateFormat = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
+	public static boolean FLAG = true;
 	private String topic;
-	private SparkSession sparkSession = null;
-	private JavaSparkContext sc = null;
-	private JavaStreamingContext jsc = null;
+	private static SparkSession sparkSession = null;
+	private static JavaSparkContext sc = null;
+	private static JavaStreamingContext jsc = null;
 
 
 	public CustomerKafkaConsumer(String topic, Integer duration) {
 		this.topic = topic;
-		this.sparkSession = SparkSession.builder()
-				.appName("CustomerKafkaProducer")
-				.master("local[3]")
-				.getOrCreate();
-		this.sc = JavaSparkContext.fromSparkContext(sparkSession.sparkContext());
-		this.jsc = new JavaStreamingContext(sc, Seconds.apply(duration));
+		getInstance(duration);
+		jsc.sparkContext().setLogLevel("WARN");
 	}
 
+	public static void getInstance(Integer duration) {
+		if (sparkSession == null) {
+			sparkSession = SparkSession.builder()
+					.appName("CustomerKafkaProducer")
+					.master("local[3]")
+					.getOrCreate();
+		}
+		if (sc == null) {
+			sc = JavaSparkContext.fromSparkContext(sparkSession.sparkContext());
+		}
+		if (jsc == null) {
+			jsc = new JavaStreamingContext(sc, Seconds.apply(duration));
+		}
+	}
 
 	@Override
 	public void run() {
@@ -78,7 +83,6 @@ public class CustomerKafkaConsumer implements Runnable {
 		Map<String, Object> kafkaParams = new HashMap<>();
 		String broker = getParamsFromConfig("bootstrap.servers");
 //		String offset = getParamsFromConfig("auto.offset.reset");
-		logger.info("******" + broker + "***************************************");
 		kafkaParams.put("bootstrap.servers", broker);
 		kafkaParams.put("value.deserializer", StringDeserializer.class);
 		kafkaParams.put("key.deserializer", StringDeserializer.class);
@@ -97,49 +101,11 @@ public class CustomerKafkaConsumer implements Runnable {
 			return vo;
 		});
 		stream.print();
-//		directStream.foreachRDD((VoidFunction<JavaRDD<ConsumerRecord<Object, Object>>>) rdd -> {
-//			rdd.foreach((VoidFunction<ConsumerRecord<Object, Object>>) record -> {
-//				String date = LocalDateTime.now().format(formatter);
-//				long receiveTimeLong = System.currentTimeMillis();
-//				String message = String.valueOf(record.value());
-//				KafkaMessage vo = null;
-//				try {
-//					vo = JSON.parseObject(message, KafkaMessage.class);
-//					String createTime = vo.getCreateTime();
-//					long createTimeLong = fastDateFormat.parse(createTime).getTime();
-//					logger.info("接收到消息：" + vo + ",消息发送时间：" + createTime + ",消息接收时间：" + date + "，共花费" + (receiveTimeLong - createTimeLong));
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			});
-//		});
-//		dStream = KafkaUtils
-//				.createDirectStream(jsc
-//						, String.class,
-//						String.class,
-//						StringDecoder.class,
-//						StringDecoder.class,
-//						kafkaParams,
-//						topics);
-//		dStream.map((Function<Tuple2<String, String>, KafkaMessage>) v1 -> {
-//			String date = LocalDateTime.now().format(formatter);
-//			long receiveTimeLong = System.currentTimeMillis();
-//			String message = v1._2;
-//			KafkaMessage vo = null;
-//			try {
-//				vo = JSON.parseObject(message, KafkaMessage.class);
-//				String createTime = vo.getCreateTime();
-//				long createTimeLong = fastDateFormat.parse(createTime).getTime();
-//				logger.info("接收到消息：" + vo + ",消息发送时间：" + createTime + ",消息接收时间：" + date + "，共花费" + (receiveTimeLong - createTimeLong));
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//			}
-//			return vo;
-//		});
-
-		jsc.start();
-		jsc.awaitTermination();
-//		jsc.close();
+		if (FLAG) {
+			jsc.start();
+			jsc.awaitTermination();
+			FLAG = false;
+		}
 	}
 
 	public static String getParamsFromConfig(String key) {
