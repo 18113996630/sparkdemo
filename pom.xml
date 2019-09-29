@@ -17,7 +17,7 @@
     <properties>
         <kafka.version>0.10.2.1</kafka.version>
         <scala.version>2.11.8</scala.version>
-        <spark.version>2.2.1</spark.version>
+        <spark.version>2.4.4</spark.version>
         <hbase.version>1.2.0-cdh5.7.0</hbase.version>
         <hadoop.version>2.6.0-cdh5.7.0</hadoop.version>
     </properties>
