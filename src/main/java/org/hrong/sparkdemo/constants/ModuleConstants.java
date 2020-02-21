@@ -8,10 +8,10 @@ package org.hrong.sparkdemo.constants;
  * @Version 1.0
  **/
 public class ModuleConstants {
-	public static final String BASE_PATH = "E:\\workspace\\sparkdemo\\src\\main\\resources\\";
+	public static final String BASE_PATH = "E:\\workspace\\java\\hadoop\\sparkdemo\\src\\main\\resources\\";
 	public static final String CHECK_POINT_PATH = "hdfs://s101:9000/sparkstreaming";
 
 	/**************************************************************************************************/
 
-	public static final String KAFKA_TOPIC = "test_topic";
+	public static final String KAFKA_TOPIC = "test";
 }

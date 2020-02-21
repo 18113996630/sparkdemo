@@ -1,11 +1,9 @@
 package org.hrong.sparkdemo.kafka;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.hrong.sparkdemo.constants.ModuleConstants;
 import org.hrong.sparkdemo.kafka.vo.KafkaMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
